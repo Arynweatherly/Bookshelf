@@ -40,6 +40,7 @@ namespace Bookshelf35.Controllers
             var book = await _context.Book
                 .Include(b => b.ApplicationUser)
                 .Include(b => b.Author)
+         
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
             {

@@ -5,6 +5,11 @@
     <UserSecretsId>aspnet-Bookshelf35-6C682E36-8C1C-40A2-BA75-88FF7F6C7DE2</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Migrations\20200122161910_specificBooks.cs" />
+    <Compile Remove="Migrations\20200122161910_specificBooks.Designer.cs" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.0" />
