@@ -25,9 +25,14 @@ namespace Bookshelf35.Controllers
         // GET: Books
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Book.Include(b => b.ApplicationUser).Include(b => b.Author);
+            var user = await GetCurrentUserAsync();
+
+            var applicationDbContext = _context.Book.Where(b => b.ApplicationUserId == user.Id);
             return View(await applicationDbContext.ToListAsync());
         }
+
+
+  
 
         // GET: Books/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -40,10 +45,11 @@ namespace Bookshelf35.Controllers
             var book = await _context.Book
               //  .Include(b => b.ApplicationUser)
                 .Include(b => b.Author)
+                .Include(b => b.Comments)
          
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (book == null)
-            {
+            { 
                 return NotFound();
             }
 

@@ -170,3 +170,8 @@ C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razo
 C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Authors\Details.cshtml.g.cs
 C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Authors\Edit.cshtml.g.cs
 C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Authors\Index.cshtml.g.cs
+C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Comments\Create.cshtml.g.cs
+C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Comments\Delete.cshtml.g.cs
+C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Comments\Details.cshtml.g.cs
+C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Comments\Edit.cshtml.g.cs
+C:\Users\arynw\source\repos\Bookshelf35\Bookshelf35\obj\Debug\netcoreapp3.1\Razor\Views\Comments\Index.cshtml.g.cs
