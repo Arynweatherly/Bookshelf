@@ -27,8 +27,8 @@ namespace Bookshelf35.Controllers
         {
             var user = await GetCurrentUserAsync();
 
-            var applicationDbContext = _context.Book.Where(b => b.ApplicationUserId == user.Id);
-            return View(await applicationDbContext.ToListAsync());
+            var books = _context.Book.Where(b => b.ApplicationUserId == user.Id);
+            return View(await books.ToListAsync());
         }
 
 
@@ -41,9 +41,12 @@ namespace Bookshelf35.Controllers
             {
                 return NotFound();
             }
+            var user = await GetCurrentUserAsync();
 
             var book = await _context.Book
               //  .Include(b => b.ApplicationUser)
+              .Where(a => a.ApplicationUserId == user.Id)
+                .Include(b => b.ApplicationUser)
                 .Include(b => b.Author)
                 .Include(b => b.Comments)
          
@@ -75,6 +78,7 @@ namespace Bookshelf35.Controllers
             //who added the book?
             var user = await GetCurrentUserAsync();
             book.ApplicationUserId = user.Id;
+
             if (ModelState.IsValid)
             {
                 _context.Add(book);
@@ -93,13 +97,14 @@ namespace Bookshelf35.Controllers
                 return NotFound();
             }
 
+            var user = await GetCurrentUserAsync();
+
             var book = await _context.Book.FindAsync(id);
             if (book == null)
             {
                 return NotFound();
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", book.ApplicationUserId);
-            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id", book.AuthorId);
+            ViewData["AuthorId"] = new SelectList(_context.Author.Where(a => a.ApplicationUserId == user.Id), "Id", "Name", book.AuthorId);
             return View(book);
         }
 
@@ -114,6 +119,8 @@ namespace Bookshelf35.Controllers
             {
                 return NotFound();
             }
+
+            var user = await GetCurrentUserAsync();
 
             if (ModelState.IsValid)
             {
@@ -135,8 +142,7 @@ namespace Bookshelf35.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", book.ApplicationUserId);
-            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id", book.AuthorId);
+            ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Name", book.AuthorId);
             return View(book);
         }
 
@@ -175,6 +181,8 @@ namespace Bookshelf35.Controllers
         {
             return _context.Book.Any(e => e.Id == id);
         }
+
+        //once the following method is defined, any method that needs to see who the user is can invoke the method.
         private Task<ApplicationUser> GetCurrentUserAsync() => _userManager.GetUserAsync(HttpContext.User);
 
     }

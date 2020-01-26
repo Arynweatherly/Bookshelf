@@ -7,24 +7,35 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Bookshelf35.Data;
 using Bookshelf35.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bookshelf35.Controllers
 {
+    [Authorize]
     public class CommentsController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public CommentsController(ApplicationDbContext context)
-        {
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public CommentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Comments
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Comment.Include(c => c.ApplicationUser).Include(c => c.Book);
+            var user = await GetCurrentUserAsync();
+            var applicationDbContext = _context.Comment
+                .Where(b => b.ApplicationUserId == user.Id)
+                .Include(c => c.ApplicationUser)
+                .Include(c => c.Book);
             return View(await applicationDbContext.ToListAsync());
         }
+
 
         // GET: Comments/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -46,34 +57,48 @@ namespace Bookshelf35.Controllers
             return View(comment);
         }
 
+
         // GET: Comments/Create
-        public IActionResult Create()
+        //comments controller the create form function and the book id
+        [HttpGet("Comments/Create/{bookId}")]
+        public async Task<IActionResult> Create(int bookId)
         {
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id");
-            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id");
-            return View();
+            if (bookId == null)
+            {
+                var user = await GetCurrentUserAsync();
+            }
+                return View();
         }
 
         // POST: Comments/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPost("Comments/Create/{bookId}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Text,ApplicationUserId,BookId")] Comment comment)
+        public async Task<IActionResult> Create([FromRoute] int bookId, [Bind("Id,Text,ApplicationUserId,BookId")] Comment comment)
         {
+            var user = await GetCurrentUserAsync();
+            comment.ApplicationUserId = user.Id;
+            if (bookId != null)
+            {
+                comment.BookId = bookId;
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(comment);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Books", new { id = bookId});
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", comment.ApplicationUserId);
-            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id", comment.BookId);
+            ViewData["BookId"] = new SelectList(_context.Book
+                .Where(b => b.ApplicationUserId == user.Id),
+                "Id", "Title", comment.BookId);
             return View(comment);
         }
 
         // GET: Comments/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet("Comments/Edit/{id}")]
+        public async Task<IActionResult> Edit(int? id, int bookId)
         {
             if (id == null)
             {
@@ -81,11 +106,12 @@ namespace Bookshelf35.Controllers
             }
 
             var comment = await _context.Comment.FindAsync(id);
+
+            var user = await GetCurrentUserAsync();
             if (comment == null)
             {
                 return NotFound();
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", comment.ApplicationUserId);
             ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id", comment.BookId);
             return View(comment);
         }
@@ -93,7 +119,7 @@ namespace Bookshelf35.Controllers
         // POST: Comments/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        [HttpPost("Comments/Edit/{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Text,ApplicationUserId,BookId")] Comment comment)
         {
@@ -101,6 +127,10 @@ namespace Bookshelf35.Controllers
             {
                 return NotFound();
             }
+
+            var user = await GetCurrentUserAsync();
+
+            comment.ApplicationUserId = user.Id;
 
             if (ModelState.IsValid)
             {
@@ -120,9 +150,8 @@ namespace Bookshelf35.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Details", "Books", new { id = comment.BookId });
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", comment.ApplicationUserId);
             ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id", comment.BookId);
             return View(comment);
         }
@@ -155,12 +184,14 @@ namespace Bookshelf35.Controllers
             var comment = await _context.Comment.FindAsync(id);
             _context.Comment.Remove(comment);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Books");
         }
 
         private bool CommentExists(int id)
         {
             return _context.Comment.Any(e => e.Id == id);
         }
+
+        private Task<ApplicationUser> GetCurrentUserAsync() => _userManager.GetUserAsync(HttpContext.User);
     }
 }
